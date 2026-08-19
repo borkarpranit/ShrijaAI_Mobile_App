@@ -1,0 +1,29 @@
+# Project TODO
+
+- [x] Audit the supplied ShrijaAI web prototype and preserve its complete screen set and core flows.
+- [x] Replace the starter application with the ShrijaAI visual system and mobile data model.
+- [x] Implement local session handling, theme preference, and profile settings.
+- [x] Build native Home, AI Assistant, Attendance, Leave, Profile, Payroll, and Notifications experiences.
+- [x] Add responsive navigation, interaction feedback, and local persistence for user actions.
+- [x] Generate a unique branded icon and apply it to the required Expo app assets and configuration.
+- [x] Add deterministic tests for navigation-independent business state and key interaction logic.
+- [x] Run type checking, linting, and tests; address all reported errors.
+- [x] Create a final checkpoint and provide device run instructions.
+- [x] Fix the deterministic test module import so the validation suite can run in the configured test environment.
+- [x] Restore the missing Metro configuration import so Expo can load the native bundler configuration.
+- [x] Resolve the remaining Metro configuration load failure surfaced by the Expo export validation.
+- [x] Remove database and server-dependent functionality from the Shrija AI mobile application.
+- [x] Simplify navigation to Splash/Login, Chat Assistant, Profile, and Notifications only.
+- [x] Rebuild the assistant view as a focused ChatGPT-style mobile conversation interface.
+- [x] Diagnose and resolve the Expo Go white-screen startup failure.
+- [x] Validate the streamlined application bundle and login-to-chat flow on Expo-compatible runtime paths.
+- [x] Remove unused template icon components that still require the deleted Expo Symbols dependency.
+- [x] Save a final checkpoint for the streamlined Expo Go chat client.
+- [x] Add and validate hard-coded demo email and password sign-in for the static mobile client.
+- [x] Confirm the final static client is configured for Expo SDK 54 and contains no bundled database or server code.
+- [x] Save the final static Expo SDK 54 mobile client checkpoint.
+- [x] Add a prominent dedicated login button and login feedback to the static sign-in screen.
+- [x] Complete essential offline interactions for chat prompts, notifications, profile controls, and logout.
+- [x] Validate the enhanced static user flows in the Expo SDK 54 bundle.
+- [x] Keep the mobile client free of bundled database code while documenting a clean future API boundary for the existing external MySQL backend.
+- [x] Restrict the revised application navigation to Splash/Login, Shrija AI Assistant, Profile, and Notifications.
