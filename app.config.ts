@@ -11,6 +11,7 @@ const config: ExpoConfig = {
   ios: { supportsTablet: false, bundleIdentifier: "com.app.shrijaaimobile" },
   android: {
     package: "com.app.shrijaaimobile",
+    softwareKeyboardLayoutMode: "resize",
     adaptiveIcon: {
       backgroundColor: "#10A37F",
       foregroundImage: "./assets/images/android-icon-foreground.png",
