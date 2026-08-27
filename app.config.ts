@@ -13,11 +13,12 @@ const config: ExpoConfig = {
     package: "com.app.shrijaaimobile",
     softwareKeyboardLayoutMode: "resize",
     adaptiveIcon: {
-      backgroundColor: "#10A37F",
+      // backgroundColor: "#10A37F",
+      backgroundColor: "#c40b77",
       foregroundImage: "./assets/images/android-icon-foreground.png",
     },
   },
-  web: { bundler: "metro", output: "static", favicon: "./assets/images/favicon.png" },
+  // web: { bundler: "metro", output: "static", favicon: "./assets/images/favicon.png" },
   plugins: [
     "expo-router",
     [

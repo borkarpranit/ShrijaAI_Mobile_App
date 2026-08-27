@@ -1,349 +1,250 @@
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
+  Alert,
+  Dimensions,
   FlatList,
   Keyboard,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   StyleSheet,
-  Text,
-  TextInput,
   View,
 } from "react-native";
 
-import {
-  AppScreen,
-  Avatar,
-  IconButton,
-  usePalette,
-} from "@/components/shrija-ui";
+import { AppScreen, usePalette } from "@/components/shrija-ui";
+
+import ShrijaSidebar from "@/components/shrija-sidebar";
+import ShrijaChatHeader from "@/components/shrija-chat-header";
+import ShrijaWelcome from "@/components/shrija-welcome";
+import ShrijaSuggestions from "@/components/shrija-suggestions";
+import ShrijaComposer from "@/components/shrija-chat-composer";
+import ShrijaChatMessage from "@/components/shrija-chat-message";
+
 import { haptic } from "@/lib/haptics";
 import { type ChatMessage } from "@/lib/shrija-domain";
-import { useShrija } from "@/lib/shrija-store";
 
-const starters = [
-  "Explain our leave policy",
-  "Help write a work update",
-  "What can you help with?",
-];
+import { useShrija } from "@/lib/shrija-store";
 
 export default function ShrijaChatScreen() {
   const { messages, sendMessage, clearConversation } = useShrija();
+
   const p = usePalette();
+
   const [input, setInput] = useState("");
+  const [sidebarVisible, setSidebarVisible] = useState(false);
+
   const list = useRef<FlatList<ChatMessage>>(null);
 
+  const isLargeScreen = Dimensions.get("window").width >= 900;
+
+  // useEffect(() => {
+  //   requestAnimationFrame(() => {
+  //     list.current?.scrollToEnd({
+  //       animated: true,
+  //     });
+  //   });
+  // }, [messages.length]);
   useEffect(() => {
-    requestAnimationFrame(() => list.current?.scrollToEnd({ animated: true }));
-  }, [messages.length]);
+  const timer = setTimeout(() => {
+    list.current?.scrollToEnd({
+      animated: true,
+    });
+  }, 100);
+
+  return () => clearTimeout(timer);
+}, [messages.length]);
 
   useEffect(() => {
     const subscription = Keyboard.addListener("keyboardDidShow", () => {
       setTimeout(() => {
-        list.current?.scrollToEnd({ animated: true });
-      }, 100);
+        list.current?.scrollToEnd({
+          animated: true,
+        });
+      }, 250);
     });
 
-    return () => {
-      subscription.remove();
-    };
+    return () => subscription.remove();
   }, []);
 
   const submit = (value = input) => {
     if (!value.trim()) return;
+
     haptic.light();
+
     sendMessage(value);
+
     setInput("");
-  };
-  const newChat = () => {
-    haptic.selection();
-    clearConversation();
+
+    setTimeout(() => {
+      list.current?.scrollToEnd({
+        animated: true,
+      });
+    }, 100);
   };
 
-  return (
-    <AppScreen>
+  const newChat = () => {
+    haptic.selection();
+
+    clearConversation();
+
+    setInput("");
+
+    setSidebarVisible(false);
+  };
+
+  const handleMicPress = () => {
+    /*
+     * Voice recognition will be connected here later.
+     *
+     * DO NOT import expo-speech-recognition here yet.
+     *
+     * For now this is only a UI placeholder.
+     */
+
+    Alert.alert(
+      "Voice input",
+      "Microphone integration will be connected next.",
+    );
+  };
+
+  const openProfile = () => {
+    setSidebarVisible(false);
+
+    router.push("/(tabs)/profile");
+  };
+
+  const openNotifications = () => {
+    router.push("/notifications");
+  };
+
+  const content = (
+    <View style={[styles.main, { backgroundColor: p.background }]}>
+      <ShrijaChatHeader
+        onMenu={() => setSidebarVisible(true)}
+        onNotification={openNotifications}
+        onProfile={openProfile}
+      />
+
       <KeyboardAvoidingView
+        style={styles.chatArea}
         behavior="padding"
+        // behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={0}
-        style={styles.screen}
       >
-        <View
-          style={[
-            styles.header,
-            { borderBottomColor: p.border, backgroundColor: p.background },
-          ]}
-        >
-          <View style={styles.brandRow}>
-            <View style={[styles.mark, { backgroundColor: p.accent }]}>
-              <MaterialIcons name="auto-awesome" size={18} color="#FFFFFF" />
-            </View>
-            <View>
-              <Text style={[styles.title, { color: p.text }]}>Shrija AI</Text>
-              <View style={styles.statusRow}>
-                <View style={[styles.status, { backgroundColor: p.accent }]} />
-                <Text style={[styles.statusText, { color: p.muted }]}>
-                  Always here to help
-                </Text>
-              </View>
-            </View>
-          </View>
-          <View style={styles.headerActions}>
-            <IconButton
-              icon="add-comment"
-              label="Start a new chat"
-              onPress={newChat}
-            />
-            <IconButton
-              icon="notifications-none"
-              label="Notifications"
-              alert
-              onPress={() => router.push("/notifications")}
-            />
-            <Pressable
-              onPress={() => router.push("/(tabs)/profile")}
-              style={({ pressed }) => ({ opacity: pressed ? 0.65 : 1 })}
-            >
-              <Avatar size={39} />
-            </Pressable>
-          </View>
-        </View>
+        {/* <View style={styles.chatArea}> */}
         <FlatList
           ref={list}
           data={messages}
-          keyboardShouldPersistTaps="handled"
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <Message item={item} />}
-          contentContainerStyle={[
-            styles.list,
-            { backgroundColor: p.background },
-          ]}
+          keyboardShouldPersistTaps="handled"
+          // keyboardDismissMode={
+          //   Platform.OS === "ios" ? "interactive" : "on-drag"
+          // }
+          // keyboardDismissMode="on-drag"
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => <ShrijaChatMessage item={item} />}
           ListHeaderComponent={
             messages.length <= 1 ? (
-              <View style={styles.starters}>
-                {starters.map((starter) => (
-                  <Pressable
-                    key={starter}
-                    onPress={() => submit(starter)}
-                    style={({ pressed }) => [
-                      styles.starter,
-                      {
-                        backgroundColor: p.surface,
-                        borderColor: p.border,
-                        opacity: pressed ? 0.62 : 1,
-                      },
-                    ]}
-                  >
-                    <Text style={[styles.starterText, { color: p.text }]}>
-                      {starter}
-                    </Text>
-                    <MaterialIcons
-                      name="north-east"
-                      size={16}
-                      color={p.muted}
-                    />
-                  </Pressable>
-                ))}
+              <View>
+                <ShrijaWelcome />
+
+                <ShrijaSuggestions onSelect={(text) => submit(text)} />
               </View>
             ) : null
           }
+          contentContainerStyle={styles.messageList}
         />
-        <View
-          style={[
-            styles.composerArea,
-            { backgroundColor: p.background, borderTopColor: p.border },
-          ]}
-        >
-          <View
-            style={[
-              styles.composer,
-              { backgroundColor: p.surface, borderColor: p.border },
-            ]}
-          >
-            <TextInput
-              value={input}
-              onChangeText={setInput}
-              onSubmitEditing={() => submit()}
-              multiline
-              blurOnSubmit={false}
-              placeholder="Message Shrija…"
-              placeholderTextColor={p.subtle}
-              returnKeyType="send"
-              style={[styles.input, { color: p.text }]}
-            />
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Send message"
-              onPress={() => submit()}
-              style={({ pressed }) => [
-                styles.send,
-                {
-                  backgroundColor: input.trim() ? p.accent : p.border,
-                  opacity: pressed ? 0.7 : 1,
-                },
-              ]}
-            >
-              <MaterialIcons name="arrow-upward" size={20} color="#FFFFFF" />
-            </Pressable>
-          </View>
-          <Text style={[styles.disclaimer, { color: p.subtle }]}>
-            Shrija can make mistakes. Verify important information.
-          </Text>
-        </View>
+
+        <ShrijaComposer
+          value={input}
+          onChangeText={setInput}
+          onSend={() => submit()}
+          onMicPress={handleMicPress}
+        />
+        {/* </View> */}
       </KeyboardAvoidingView>
+    </View>
+  );
+
+  /*
+   * Large screen:
+   *
+   * Sidebar permanently visible.
+   *
+   * Mobile:
+   *
+   * Sidebar appears as drawer when hamburger is pressed.
+   */
+
+  if (isLargeScreen) {
+    return (
+      <AppScreen>
+        <View style={styles.desktop}>
+          <ShrijaSidebar onNewChat={newChat} onProfile={openProfile} />
+
+          {content}
+        </View>
+      </AppScreen>
+    );
+  }
+
+  return (
+    <AppScreen>
+      {content}
+
+      <Modal
+        visible={sidebarVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setSidebarVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <ShrijaSidebar
+            onNewChat={newChat}
+            onClose={() => setSidebarVisible(false)}
+            onProfile={openProfile}
+          />
+
+          <Pressable
+            style={styles.overlay}
+            onPress={() => setSidebarVisible(false)}
+          />
+        </View>
+      </Modal>
     </AppScreen>
   );
 }
 
-function Message({ item }: { item: ChatMessage }) {
-  const p = usePalette();
-  const isUser = item.role === "user";
-  return (
-    <View
-      style={[
-        styles.messageRow,
-        { justifyContent: isUser ? "flex-end" : "flex-start" },
-      ]}
-    >
-      {!isUser ? (
-        <View style={[styles.assistantIcon, { backgroundColor: p.accent }]}>
-          <MaterialIcons name="auto-awesome" size={14} color="#FFFFFF" />
-        </View>
-      ) : null}
-      <View
-        style={[
-          styles.message,
-          {
-            backgroundColor: isUser ? p.accent : p.surface,
-            borderColor: isUser ? p.accent : p.border,
-          },
-        ]}
-      >
-        <Text
-          style={[styles.messageText, { color: isUser ? "#FFFFFF" : p.text }]}
-        >
-          {item.text}
-        </Text>
-        <Text
-          style={[
-            styles.messageTime,
-            { color: isUser ? "rgba(255,255,255,0.72)" : p.subtle },
-          ]}
-        >
-          {item.createdAt}
-        </Text>
-      </View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  screen: { flex: 1 },
-  header: {
-    minHeight: 69,
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  brandRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  mark: {
-    width: 39,
-    height: 39,
-    borderRadius: 13,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 18,
-    lineHeight: 23,
-    fontWeight: "800",
-    letterSpacing: -0.2,
-  },
-  statusRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    marginTop: 2,
-  },
-  status: { width: 6, height: 6, borderRadius: 3 },
-  statusText: { fontSize: 11, lineHeight: 14 },
-  headerActions: { flexDirection: "row", alignItems: "center", gap: 7 },
-  list: { flexGrow: 1, paddingHorizontal: 16, paddingVertical: 18, gap: 15 },
-  starters: { gap: 9, marginTop: 4 },
-  starter: {
-    minHeight: 50,
-    borderRadius: 15,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  starterText: { fontSize: 13, lineHeight: 18, fontWeight: "700" },
-  messageRow: { flexDirection: "row", alignItems: "flex-end", gap: 8 },
-  assistantIcon: {
-    width: 29,
-    height: 29,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 3,
-  },
-  message: {
-    maxWidth: "82%",
-    borderWidth: 1,
-    borderRadius: 18,
-    paddingHorizontal: 13,
-    paddingTop: 11,
-    paddingBottom: 8,
-  },
-  messageText: { fontSize: 15, lineHeight: 22 },
-  messageTime: {
-    alignSelf: "flex-end",
-    fontSize: 10,
-    lineHeight: 13,
-    marginTop: 6,
-  },
-  composerArea: {
-    paddingHorizontal: 12,
-    paddingTop: 10,
-    paddingBottom: 8,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  composer: {
-    borderWidth: 1,
-    minHeight: 52,
-    borderRadius: 18,
-    flexDirection: "row",
-    alignItems: "flex-end",
-    paddingLeft: 14,
-    paddingRight: 5,
-    paddingVertical: 5,
-  },
-  input: {
+  desktop: {
     flex: 1,
-    minHeight: 40,
-    maxHeight: 104,
-    fontSize: 15,
-    lineHeight: 21,
-    paddingTop: 9,
-    paddingBottom: 8,
+    flexDirection: "row",
   },
-  send: {
-    width: 40,
-    height: 40,
-    borderRadius: 13,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: 7,
+
+  main: {
+    flex: 1,
   },
-  disclaimer: {
-    fontSize: 10,
-    lineHeight: 14,
-    textAlign: "center",
-    marginTop: 7,
+
+  chatArea: {
+    flex: 1,
+  },
+
+  messageList: {
+    flexGrow: 1,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 10,
+  },
+
+  modalContainer: {
+    flex: 1,
+    flexDirection: "row",
+  },
+
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
   },
 });

@@ -18,33 +18,68 @@ export type IconName = React.ComponentProps<typeof MaterialIcons>["name"];
 
 const palettes = {
   light: {
-    background: "#FFFFFF",
+    background: "#f7eded",
     surface: "#F7F7F8",
     elevated: "#FFFFFF",
     border: "#E5E7EB",
     text: "#171717",
     muted: "#6B7280",
     subtle: "#9CA3AF",
-    accent: "#10A37F",
+    accent: "#db3f7b",
     accentSoft: "#E8F7F3",
     error: "#E5484D",
     shadow: "rgba(17,24,39,0.08)",
     white: "#FFFFFF",
   },
   dark: {
-    background: "#212121",
+    background: "#0f0e0e",
     surface: "#2F2F2F",
     elevated: "#292929",
     border: "#444444",
     text: "#F6F6F6",
     muted: "#B4B4B4",
     subtle: "#858585",
-    accent: "#20C997",
-    accentSoft: "#123A30",
+    accent: "#977fcf",
+    accentSoft: "#2E1B5B",
     error: "#FB7185",
     shadow: "rgba(0,0,0,0.25)",
     white: "#FFFFFF",
   },
+  
+//   light: {
+//   background: "#FFFFFF",
+//   surface: "#F7F7F8",
+//   elevated: "#FFFFFF",
+//   border: "#E5E7EB",
+//   text: "#171717",
+//   muted: "#6B7280",
+//   subtle: "#9CA3AF",
+
+//   accent: "#8B5CF6",
+//   accentSoft: "#F0E7FF",
+
+//   error: "#E5484D",
+//   shadow: "rgba(17,24,39,0.08)",
+//   white: "#FFFFFF",
+// },
+
+// dark: {
+//   background: "#212121",
+//   surface: "#2F2F2F",
+//   elevated: "#292929",
+//   border: "#444444",
+
+//   text: "#F6F6F6",
+//   muted: "#B4B4B4",
+//   subtle: "#858585",
+
+//   accent: "#3B82F6",
+//   accentSoft: "#172554",
+
+//   error: "#FB7185",
+//   shadow: "rgba(0,0,0,0.25)",
+//   white: "#FFFFFF",
+// },
 } as const;
 
 export function usePalette(theme?: AppTheme) {
@@ -103,7 +138,32 @@ export function Card({
   );
 }
 
-export function Avatar({ size = 40 }: { size?: number }) {
+// export function Avatar({ size = 40 }: { size?: number }) {
+//   const p = usePalette();
+//   return (
+//     <View
+//       style={[
+//         styles.avatar,
+//         {
+//           width: size,
+//           height: size,
+//           borderRadius: size / 2,
+//           backgroundColor: p.accent,
+//         },
+//       ]}
+//     >
+//       <Text style={[styles.avatarText, { fontSize: size * 0.34 }]}>PS</Text>
+//     </View>
+//   );
+// }
+
+export function Avatar({
+  size = 40,
+  initials = "PS",
+}: {
+  size?: number;
+  initials?: string;
+}) {
   const p = usePalette();
   return (
     <View
@@ -117,7 +177,9 @@ export function Avatar({ size = 40 }: { size?: number }) {
         },
       ]}
     >
-      <Text style={[styles.avatarText, { fontSize: size * 0.34 }]}>PS</Text>
+      <Text style={[styles.avatarText, { fontSize: size * 0.34 }]}>
+        {initials}
+      </Text>
     </View>
   );
 }

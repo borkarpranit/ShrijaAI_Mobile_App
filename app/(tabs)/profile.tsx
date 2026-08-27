@@ -62,11 +62,11 @@ export default function ProfileScreen() {
     <AppScreen>
       <PageHeader title="Profile" subtitle="Your Shrija space" />
       <ScrollView
-        contentContainerStyle={[styles.content, { backgroundColor: p.surface }]}
+        contentContainerStyle={[styles.content, { backgroundColor: p.background }]}
       >
         <Card style={styles.profileCard}>
           <View style={styles.identity}>
-            <Avatar size={62} />
+            <Avatar size={50} />
             <View>
               <Text style={[styles.name, { color: p.text }]}>
                 {employee.name}
@@ -121,9 +121,9 @@ export default function ProfileScreen() {
             last
           />
         </Card>
-        <Text style={[styles.footer, { color: p.subtle }]}>
+        {/* <Text style={[styles.footer, { color: p.subtle }]}>
           Ready for secure connection to your existing backend.
-        </Text>
+        </Text> */}
       </ScrollView>
     </AppScreen>
   );
