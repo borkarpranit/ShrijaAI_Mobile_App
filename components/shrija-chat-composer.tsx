@@ -3,6 +3,7 @@ import {
   Alert,
   Image,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -24,9 +25,9 @@ type ShrijaComposerProps = {
   onSend: () => void;
   onMicPress: () => void;
 
-  attachment: ShrijaAttachment | null;
+  attachment: ShrijaAttachment[];
   onAttachPress: () => void;
-  onRemoveAttachment: () => void;
+  onRemoveAttachment: (index: number) => void;
 };
 
 export default function ShrijaComposer({
@@ -40,7 +41,7 @@ export default function ShrijaComposer({
 }: ShrijaComposerProps) {
   const p = usePalette();
 
-  const hasText = value.trim().length > 0 || attachment !== null;
+  const hasText = value.trim().length > 0 || attachment.length > 0;
 
   return (
     <View
@@ -52,54 +53,62 @@ export default function ShrijaComposer({
         },
       ]}
     >
-      {attachment ? (
-        <View
-          style={[
-            styles.attachmentPreview,
-            {
-              backgroundColor: p.surface,
-              borderColor: p.border,
-            },
-          ]}
+      {attachment.length > 0 ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.attachmentScroll}
+          contentContainerStyle={styles.attachmentScrollContent}
         >
-          {attachment.type === "image" ? (
-            <Image
-              source={{ uri: attachment.uri }}
-              style={styles.attachmentImage}
-            />
-          ) : (
+          {attachment.map((attachment, index) => (
             <View
-              style={[styles.documentIcon, { backgroundColor: p.accentSoft }]}
+              key={`${attachment.uri}-${index}`}
+              style={[
+                styles.attachmentCard,
+                {
+                  backgroundColor: p.surface,
+                  borderColor: p.border,
+                },
+              ]}
             >
-              <MaterialIcons name="description" size={22} color={p.accent} />
+              {attachment.type === "image" ? (
+                <Image
+                  source={{ uri: attachment.uri }}
+                  style={styles.attachmentImageLarge}
+                />
+              ) : (
+                <View
+                  style={[
+                    styles.documentIconLarge,
+                    {
+                      backgroundColor: p.accentSoft,
+                    },
+                  ]}
+                >
+                  <MaterialIcons
+                    name="description"
+                    size={26}
+                    color={p.accent}
+                  />
+                </View>
+              )}
+
+              <Text
+                numberOfLines={1}
+                style={[styles.attachmentNameSmall, { color: p.text }]}
+              >
+                {attachment.name}
+              </Text>
+
+              <Pressable
+                onPress={() => onRemoveAttachment(index)}
+                style={styles.removeButton}
+              >
+                <MaterialIcons name="close" size={16} color="#FFFFFF" />
+              </Pressable>
             </View>
-          )}
-
-          <View style={styles.attachmentInfo}>
-            <Text
-              numberOfLines={1}
-              style={[styles.attachmentName, { color: p.text }]}
-            >
-              {attachment.name}
-            </Text>
-
-            <Text style={[styles.attachmentType, { color: p.muted }]}>
-              {attachment.type === "image" ? "Image" : "Document"}
-            </Text>
-          </View>
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Remove attachment"
-            onPress={onRemoveAttachment}
-            style={({ pressed }) => [
-              styles.removeAttachment,
-              { opacity: pressed ? 0.5 : 1 },
-            ]}
-          >
-            <MaterialIcons name="close" size={20} color={p.muted} />
-          </Pressable>
-        </View>
+          ))}
+        </ScrollView>
       ) : null}
 
       <View
@@ -190,50 +199,105 @@ const styles = StyleSheet.create({
     // borderTopWidth: StyleSheet.hairlineWidth,
   },
 
-  attachmentPreview: {
-    minHeight: 64,
-    borderRadius: 14,
-    borderWidth: 1,
+  // attachmentContainer: {
+  //   maxHeight: 220,
+  //   marginBottom: 8,
+  // },
+
+  // attachmentPreview: {
+  //   minHeight: 64,
+  //   borderRadius: 14,
+  //   borderWidth: 1,
+  //   marginBottom: 6,
+  //   padding: 8,
+  //   flexDirection: "row",
+  //   alignItems: "center",
+  // },
+
+  // attachmentImage: {
+  //   width: 48,
+  //   height: 48,
+  //   borderRadius: 10,
+  // },
+
+  // documentIcon: {
+  //   width: 48,
+  //   height: 48,
+  //   borderRadius: 10,
+  //   alignItems: "center",
+  //   justifyContent: "center",
+  // },
+
+  // attachmentInfo: {
+  //   flex: 1,
+  //   marginLeft: 10,
+  //   marginRight: 8,
+  // },
+
+  // attachmentName: {
+  //   fontSize: 13,
+  //   fontWeight: "700",
+  // },
+
+  // attachmentType: {
+  //   fontSize: 11,
+  //   marginTop: 3,
+  // },
+
+  // removeAttachment: {
+  //   width: 34,
+  //   height: 34,
+  //   borderRadius: 17,
+  //   alignItems: "center",
+  //   justifyContent: "center",
+  // },
+
+  attachmentScroll: {
     marginBottom: 8,
-    padding: 8,
-    flexDirection: "row",
-    alignItems: "center",
   },
 
-  attachmentImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 10,
+  attachmentScrollContent: {
+    paddingHorizontal: 2,
+    gap: 8,
   },
 
-  documentIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 10,
+  attachmentCard: {
+    width: 92,
+    height: 100,
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 6,
+    position: "relative",
+  },
+
+  attachmentImageLarge: {
+    width: "100%",
+    height: 60,
+    borderRadius: 8,
+  },
+
+  documentIconLarge: {
+    width: "100%",
+    height: 60,
+    borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
   },
 
-  attachmentInfo: {
-    flex: 1,
-    marginLeft: 10,
-    marginRight: 8,
+  attachmentNameSmall: {
+    fontSize: 10,
+    fontWeight: "600",
+    marginTop: 4,
   },
 
-  attachmentName: {
-    fontSize: 13,
-    fontWeight: "700",
-  },
-
-  attachmentType: {
-    fontSize: 11,
-    marginTop: 3,
-  },
-
-  removeAttachment: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+  removeButton: {
+    position: "absolute",
+    top: 3,
+    right: 3,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: "rgba(0,0,0,0.65)",
     alignItems: "center",
     justifyContent: "center",
   },

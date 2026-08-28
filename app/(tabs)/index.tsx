@@ -21,7 +21,9 @@ import ShrijaSidebar from "@/components/shrija-sidebar";
 import ShrijaChatHeader from "@/components/shrija-chat-header";
 import ShrijaWelcome from "@/components/shrija-welcome";
 import ShrijaSuggestions from "@/components/shrija-suggestions";
-import ShrijaComposer, { type ShrijaAttachment } from "@/components/shrija-chat-composer";
+import ShrijaComposer, {
+  type ShrijaAttachment,
+} from "@/components/shrija-chat-composer";
 import ShrijaChatMessage from "@/components/shrija-chat-message";
 
 import { haptic } from "@/lib/haptics";
@@ -37,7 +39,7 @@ export default function ShrijaChatScreen() {
   const [input, setInput] = useState("");
   const [sidebarVisible, setSidebarVisible] = useState(false);
 
-  const [attachment, setAttachment] = useState<ShrijaAttachment | null>(null);
+  const [attachment, setAttachment] = useState<ShrijaAttachment[]>([]);
 
   const list = useRef<FlatList<ChatMessage>>(null);
 
@@ -51,14 +53,14 @@ export default function ShrijaChatScreen() {
   //   });
   // }, [messages.length]);
   useEffect(() => {
-  const timer = setTimeout(() => {
-    list.current?.scrollToEnd({
-      animated: true,
-    });
-  }, 100);
+    const timer = setTimeout(() => {
+      list.current?.scrollToEnd({
+        animated: true,
+      });
+    }, 100);
 
-  return () => clearTimeout(timer);
-}, [messages.length]);
+    return () => clearTimeout(timer);
+  }, [messages.length]);
 
   useEffect(() => {
     const subscription = Keyboard.addListener("keyboardDidShow", () => {
@@ -73,54 +75,60 @@ export default function ShrijaChatScreen() {
   }, []);
 
   const pickImage = async () => {
-  try {
-    const permission =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    try {
+      const permission =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-    if (!permission.granted) {
-      Alert.alert(
-        "Permission required",
-        "Please allow Shrija AI to access your photos.",
-      );
-      return;
-    }
+      if (!permission.granted) {
+        Alert.alert(
+          "Permission required",
+          "Please allow Shrija AI to access your photos.",
+        );
+        return;
+      }
 
-    const result =
-      await ImagePicker.launchImageLibraryAsync({
+      const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
-        allowsMultipleSelection: false,
+        allowsMultipleSelection: true,
+        selectionLimit: 0,
         quality: 1,
+        allowsEditing: false,
       });
 
-    if (result.canceled) {
-      return;
+      if (result.canceled) {
+        return;
+      }
+
+      const selectedAttachments: ShrijaAttachment[] =
+      result.assets.map((asset) => ({
+        uri: asset.uri,
+        name:
+          asset.fileName ??
+          `image-${Date.now()}-${Math.random()
+            .toString(36)
+            .substring(2, 8)}.jpg`,
+        type: "image",
+        mimeType: asset.mimeType,
+        size: asset.fileSize,
+      }));
+
+    setAttachment((current) => [
+      ...current,
+      ...selectedAttachments,
+    ]);
+    } catch (error) {
+      console.error("Image picker error:", error);
+
+      Alert.alert(
+        "Unable to select images",
+        "Something went wrong while selecting the images.",
+      );
     }
-
-    const asset = result.assets[0];
-
-    setAttachment({
-      uri: asset.uri,
-      name:
-        asset.fileName ??
-        `image-${Date.now()}.jpg`,
-      type: "image",
-      mimeType: asset.mimeType,
-      size: asset.fileSize,
-    });
-  } catch (error) {
-    console.error("Image picker error:", error);
-
-    Alert.alert(
-      "Unable to select image",
-      "Something went wrong while selecting the image.",
-    );
-  }
   };
 
   const pickDocument = async () => {
-  try {
-    const result =
-      await DocumentPicker.getDocumentAsync({
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
         type: [
           "application/pdf",
           "application/msword",
@@ -130,43 +138,41 @@ export default function ShrijaChatScreen() {
           "text/plain",
         ],
         // type: "*/*",
-        multiple: false,
+        multiple: true,
         copyToCacheDirectory: true,
       });
 
-    if (result.canceled) {
-      return;
+      if (result.canceled) {
+        return;
+      }
+
+      const selectedAttachments: ShrijaAttachment[] =
+      result.assets.map((file) => ({
+        uri: file.uri,
+        name: file.name,
+        type: "document",
+        mimeType: file.mimeType,
+        size: file.size,
+      }));
+
+    setAttachment((current) => [
+      ...current,
+      ...selectedAttachments,
+    ]);
+    } catch (error) {
+      console.error("Document picker error:", error);
+
+      Alert.alert(
+        "Unable to select documents",
+        "Something went wrong while selecting the documents.",
+      );
     }
-
-    const file = result.assets[0];
-
-    setAttachment({
-      uri: file.uri,
-      name: file.name,
-      type: "document",
-      mimeType: file.mimeType,
-      size: file.size,
-    });
-  } catch (error) {
-    console.error(
-      "Document picker error:",
-      error,
-    );
-
-    Alert.alert(
-      "Unable to select document",
-      "Something went wrong while selecting the document.",
-    );
-  }
   };
 
   const handleAttachPress = () => {
-  Keyboard.dismiss();
+    Keyboard.dismiss();
 
-  Alert.alert(
-    "Attach",
-    "Choose what you want to attach",
-    [
+    Alert.alert("Attach", "Choose what you want to attach", [
       {
         text: "Photo",
         onPress: pickImage,
@@ -179,50 +185,54 @@ export default function ShrijaChatScreen() {
         text: "Cancel",
         style: "cancel",
       },
-    ],
+    ]);
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachment((current) =>
+      current.filter((_, i) => i !== index)
   );
 };
 
-const removeAttachment = () => {
-  setAttachment(null);
-};
-
   const submit = (value = input) => {
-  const text = value.trim();
+    const text = value.trim();
 
-  if (!text && !attachment) {
-    return;
+    if (!text && attachment.length === 0) {
+      return;
+    }
+
+    haptic.light();
+
+     if (attachment.length > 0) {
+      console.log(
+        "Attachments selected:",
+        attachment,
+    );
   }
 
-  haptic.light();
+    const attachmentNames =
+    attachment
+      .map((attachment) => `📎 ${attachment.name}`)
+      .join("\n");
 
-  if (attachment) {
-    console.log("Attachment selected:", {
-      uri: attachment.uri,
-      name: attachment.name,
-      type: attachment.type,
-      mimeType: attachment.mimeType,
-      size: attachment.size,
-    });
-  }
-
-  const messageText = attachment
-    ? text
-      ? `${text}\n📎 ${attachment.name}`
-      : `📎 ${attachment.name}`
-    : text;
+  const messageText =
+    attachment.length > 0
+      ? text
+        ? `${text}\n${attachmentNames}`
+        : attachmentNames
+      : text;
 
   sendMessage(messageText);
 
   setInput("");
-  setAttachment(null);
+  setAttachment([]);
 
   setTimeout(() => {
     list.current?.scrollToEnd({
       animated: true,
     });
   }, 100);
-};
+  };
 
   const newChat = () => {
     haptic.selection();
