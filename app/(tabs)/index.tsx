@@ -1,5 +1,7 @@
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
+import * as DocumentPicker from "expo-document-picker";
+import * as ImagePicker from "expo-image-picker";
 import {
   Alert,
   Dimensions,
@@ -19,7 +21,7 @@ import ShrijaSidebar from "@/components/shrija-sidebar";
 import ShrijaChatHeader from "@/components/shrija-chat-header";
 import ShrijaWelcome from "@/components/shrija-welcome";
 import ShrijaSuggestions from "@/components/shrija-suggestions";
-import ShrijaComposer from "@/components/shrija-chat-composer";
+import ShrijaComposer, { type ShrijaAttachment } from "@/components/shrija-chat-composer";
 import ShrijaChatMessage from "@/components/shrija-chat-message";
 
 import { haptic } from "@/lib/haptics";
@@ -34,6 +36,8 @@ export default function ShrijaChatScreen() {
 
   const [input, setInput] = useState("");
   const [sidebarVisible, setSidebarVisible] = useState(false);
+
+  const [attachment, setAttachment] = useState<ShrijaAttachment | null>(null);
 
   const list = useRef<FlatList<ChatMessage>>(null);
 
@@ -68,21 +72,157 @@ export default function ShrijaChatScreen() {
     return () => subscription.remove();
   }, []);
 
-  const submit = (value = input) => {
-    if (!value.trim()) return;
+  const pickImage = async () => {
+  try {
+    const permission =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-    haptic.light();
+    if (!permission.granted) {
+      Alert.alert(
+        "Permission required",
+        "Please allow Shrija AI to access your photos.",
+      );
+      return;
+    }
 
-    sendMessage(value);
-
-    setInput("");
-
-    setTimeout(() => {
-      list.current?.scrollToEnd({
-        animated: true,
+    const result =
+      await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsMultipleSelection: false,
+        quality: 1,
       });
-    }, 100);
+
+    if (result.canceled) {
+      return;
+    }
+
+    const asset = result.assets[0];
+
+    setAttachment({
+      uri: asset.uri,
+      name:
+        asset.fileName ??
+        `image-${Date.now()}.jpg`,
+      type: "image",
+      mimeType: asset.mimeType,
+      size: asset.fileSize,
+    });
+  } catch (error) {
+    console.error("Image picker error:", error);
+
+    Alert.alert(
+      "Unable to select image",
+      "Something went wrong while selecting the image.",
+    );
+  }
   };
+
+  const pickDocument = async () => {
+  try {
+    const result =
+      await DocumentPicker.getDocumentAsync({
+        type: [
+          "application/pdf",
+          "application/msword",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "application/vnd.ms-excel",
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "text/plain",
+        ],
+        // type: "*/*",
+        multiple: false,
+        copyToCacheDirectory: true,
+      });
+
+    if (result.canceled) {
+      return;
+    }
+
+    const file = result.assets[0];
+
+    setAttachment({
+      uri: file.uri,
+      name: file.name,
+      type: "document",
+      mimeType: file.mimeType,
+      size: file.size,
+    });
+  } catch (error) {
+    console.error(
+      "Document picker error:",
+      error,
+    );
+
+    Alert.alert(
+      "Unable to select document",
+      "Something went wrong while selecting the document.",
+    );
+  }
+  };
+
+  const handleAttachPress = () => {
+  Keyboard.dismiss();
+
+  Alert.alert(
+    "Attach",
+    "Choose what you want to attach",
+    [
+      {
+        text: "Photo",
+        onPress: pickImage,
+      },
+      {
+        text: "Document",
+        onPress: pickDocument,
+      },
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+    ],
+  );
+};
+
+const removeAttachment = () => {
+  setAttachment(null);
+};
+
+  const submit = (value = input) => {
+  const text = value.trim();
+
+  if (!text && !attachment) {
+    return;
+  }
+
+  haptic.light();
+
+  if (attachment) {
+    console.log("Attachment selected:", {
+      uri: attachment.uri,
+      name: attachment.name,
+      type: attachment.type,
+      mimeType: attachment.mimeType,
+      size: attachment.size,
+    });
+  }
+
+  const messageText = attachment
+    ? text
+      ? `${text}\n📎 ${attachment.name}`
+      : `📎 ${attachment.name}`
+    : text;
+
+  sendMessage(messageText);
+
+  setInput("");
+  setAttachment(null);
+
+  setTimeout(() => {
+    list.current?.scrollToEnd({
+      animated: true,
+    });
+  }, 100);
+};
 
   const newChat = () => {
     haptic.selection();
@@ -162,6 +302,9 @@ export default function ShrijaChatScreen() {
           onChangeText={setInput}
           onSend={() => submit()}
           onMicPress={handleMicPress}
+          attachment={attachment}
+          onAttachPress={handleAttachPress}
+          onRemoveAttachment={removeAttachment}
         />
         {/* </View> */}
       </KeyboardAvoidingView>

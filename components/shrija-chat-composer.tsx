@@ -1,13 +1,32 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { Pressable, StyleSheet, TextInput, View } from "react-native";
-
+import {
+  Alert,
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { usePalette } from "@/components/shrija-ui";
+
+export type ShrijaAttachment = {
+  uri: string;
+  name: string;
+  type: "image" | "document";
+  mimeType?: string | null;
+  size?: number | null;
+};
 
 type ShrijaComposerProps = {
   value: string;
   onChangeText: (text: string) => void;
   onSend: () => void;
   onMicPress: () => void;
+
+  attachment: ShrijaAttachment | null;
+  onAttachPress: () => void;
+  onRemoveAttachment: () => void;
 };
 
 export default function ShrijaComposer({
@@ -15,10 +34,13 @@ export default function ShrijaComposer({
   onChangeText,
   onSend,
   onMicPress,
+  attachment,
+  onAttachPress,
+  onRemoveAttachment,
 }: ShrijaComposerProps) {
   const p = usePalette();
 
-  const hasText = value.trim().length > 0;
+  const hasText = value.trim().length > 0 || attachment !== null;
 
   return (
     <View
@@ -30,6 +52,56 @@ export default function ShrijaComposer({
         },
       ]}
     >
+      {attachment ? (
+        <View
+          style={[
+            styles.attachmentPreview,
+            {
+              backgroundColor: p.surface,
+              borderColor: p.border,
+            },
+          ]}
+        >
+          {attachment.type === "image" ? (
+            <Image
+              source={{ uri: attachment.uri }}
+              style={styles.attachmentImage}
+            />
+          ) : (
+            <View
+              style={[styles.documentIcon, { backgroundColor: p.accentSoft }]}
+            >
+              <MaterialIcons name="description" size={22} color={p.accent} />
+            </View>
+          )}
+
+          <View style={styles.attachmentInfo}>
+            <Text
+              numberOfLines={1}
+              style={[styles.attachmentName, { color: p.text }]}
+            >
+              {attachment.name}
+            </Text>
+
+            <Text style={[styles.attachmentType, { color: p.muted }]}>
+              {attachment.type === "image" ? "Image" : "Document"}
+            </Text>
+          </View>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Remove attachment"
+            onPress={onRemoveAttachment}
+            style={({ pressed }) => [
+              styles.removeAttachment,
+              { opacity: pressed ? 0.5 : 1 },
+            ]}
+          >
+            <MaterialIcons name="close" size={20} color={p.muted} />
+          </Pressable>
+        </View>
+      ) : null}
+
       <View
         style={[
           styles.composer,
@@ -39,6 +111,21 @@ export default function ShrijaComposer({
           },
         ]}
       >
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Attach file"
+          onPress={onAttachPress}
+          style={({ pressed }) => [
+            styles.attachButton,
+            {
+              // backgroundColor: p.accentSoft,
+              opacity: pressed ? 0.55 : 1,
+            },
+          ]}
+        >
+          <MaterialIcons name="add" size={21} color="#FFFFFF" />
+        </Pressable>
+
         <TextInput
           value={value}
           onChangeText={onChangeText}
@@ -47,10 +134,7 @@ export default function ShrijaComposer({
           multiline
           // maxLength={4000}
           blurOnSubmit={false}
-          style={[
-            styles.input,
-            { color: p.text },
-          ]}
+          style={[styles.input, { color: p.text }]}
         />
 
         {/* Microphone */}
@@ -65,11 +149,7 @@ export default function ShrijaComposer({
             },
           ]}
         >
-          <MaterialIcons
-            name="mic-none"
-            size={23}
-            color={p.muted}
-          />
+          <MaterialIcons name="mic-none" size={23} color={p.muted} />
         </Pressable>
 
         {/* Send */}
@@ -81,18 +161,12 @@ export default function ShrijaComposer({
           style={({ pressed }) => [
             styles.sendButton,
             {
-              backgroundColor: hasText
-                ? p.accent
-                : p.border,
+              backgroundColor: hasText ? p.accent : p.border,
               opacity: pressed ? 0.7 : 1,
             },
           ]}
         >
-          <MaterialIcons
-            name="arrow-upward"
-            size={21}
-            color="#FFFFFF"
-          />
+          <MaterialIcons name="arrow-upward" size={21} color="#FFFFFF" />
         </Pressable>
       </View>
 
@@ -116,6 +190,54 @@ const styles = StyleSheet.create({
     // borderTopWidth: StyleSheet.hairlineWidth,
   },
 
+  attachmentPreview: {
+    minHeight: 64,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginBottom: 8,
+    padding: 8,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  attachmentImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+  },
+
+  documentIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  attachmentInfo: {
+    flex: 1,
+    marginLeft: 10,
+    marginRight: 8,
+  },
+
+  attachmentName: {
+    fontSize: 13,
+    fontWeight: "700",
+  },
+
+  attachmentType: {
+    fontSize: 11,
+    marginTop: 3,
+  },
+
+  removeAttachment: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
   composer: {
     minHeight: 52,
     maxHeight: 130,
@@ -126,6 +248,16 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     flexDirection: "row",
     alignItems: "flex-end",
+  },
+
+  attachButton: {
+    width: 42,
+    height: 42,
+    // borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 4,
+    marginBottom: 1,
   },
 
   input: {
@@ -149,7 +281,7 @@ const styles = StyleSheet.create({
   sendButton: {
     width: 42,
     height: 42,
-    borderRadius: 50,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
   },
