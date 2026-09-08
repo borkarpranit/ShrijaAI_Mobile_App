@@ -25,6 +25,8 @@ type ShrijaComposerProps = {
   onSend: () => void;
   onMicPress: () => void;
 
+  isListening: boolean;
+
   attachment: ShrijaAttachment[];
   onAttachPress: () => void;
   onRemoveAttachment: (index: number) => void;
@@ -35,6 +37,7 @@ export default function ShrijaComposer({
   onChangeText,
   onSend,
   onMicPress,
+  isListening,
   attachment,
   onAttachPress,
   onRemoveAttachment,
@@ -132,7 +135,7 @@ export default function ShrijaComposer({
             },
           ]}
         >
-          <MaterialIcons name="add" size={21} color="#FFFFFF" />
+          <MaterialIcons name="add" size={21} color={ p.text } />
         </Pressable>
 
         <TextInput
@@ -149,16 +152,26 @@ export default function ShrijaComposer({
         {/* Microphone */}
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Voice input"
+          accessibilityLabel={
+            isListening ? "Stop voice input" : "Start voice input"
+          }
           onPress={onMicPress}
           style={({ pressed }) => [
             styles.iconButton,
             {
+              backgroundColor: isListening ? p.accentSoft : "transparent",
+
+              borderRadius: 21,
               opacity: pressed ? 0.55 : 1,
             },
           ]}
         >
-          <MaterialIcons name="mic-none" size={23} color={p.muted} />
+          {/* <MaterialIcons name="mic-none" size={23} color={p.muted} /> */}
+          <MaterialIcons
+            name={isListening ? "stop" : "mic-none"}
+            size={23}
+            color={isListening ? p.accent : p.muted}
+          />
         </Pressable>
 
         {/* Send */}
@@ -198,59 +211,6 @@ const styles = StyleSheet.create({
     paddingBottom: 45,
     // borderTopWidth: StyleSheet.hairlineWidth,
   },
-
-  // attachmentContainer: {
-  //   maxHeight: 220,
-  //   marginBottom: 8,
-  // },
-
-  // attachmentPreview: {
-  //   minHeight: 64,
-  //   borderRadius: 14,
-  //   borderWidth: 1,
-  //   marginBottom: 6,
-  //   padding: 8,
-  //   flexDirection: "row",
-  //   alignItems: "center",
-  // },
-
-  // attachmentImage: {
-  //   width: 48,
-  //   height: 48,
-  //   borderRadius: 10,
-  // },
-
-  // documentIcon: {
-  //   width: 48,
-  //   height: 48,
-  //   borderRadius: 10,
-  //   alignItems: "center",
-  //   justifyContent: "center",
-  // },
-
-  // attachmentInfo: {
-  //   flex: 1,
-  //   marginLeft: 10,
-  //   marginRight: 8,
-  // },
-
-  // attachmentName: {
-  //   fontSize: 13,
-  //   fontWeight: "700",
-  // },
-
-  // attachmentType: {
-  //   fontSize: 11,
-  //   marginTop: 3,
-  // },
-
-  // removeAttachment: {
-  //   width: 34,
-  //   height: 34,
-  //   borderRadius: 17,
-  //   alignItems: "center",
-  //   justifyContent: "center",
-  // },
 
   attachmentScroll: {
     marginBottom: 8,

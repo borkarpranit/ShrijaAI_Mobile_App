@@ -239,11 +239,12 @@ const styles = StyleSheet.create({
   },
 
   top: {
-    height: 58,
+    height: 50,
     paddingHorizontal: 14,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    marginTop: 25,
   },
 
   menuButton: {

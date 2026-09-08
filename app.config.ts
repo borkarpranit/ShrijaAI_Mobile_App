@@ -14,7 +14,7 @@ const config: ExpoConfig = {
     softwareKeyboardLayoutMode: "resize",
     adaptiveIcon: {
       // backgroundColor: "#10A37F",
-      backgroundColor: "#c40b77",
+      backgroundColor: "#d32a8d",
       foregroundImage: "./assets/images/android-icon-foreground.png",
     },
   },
@@ -25,6 +25,7 @@ const config: ExpoConfig = {
       "expo-splash-screen",
       { image: "./assets/images/splash-icon.png", imageWidth: 200, resizeMode: "contain", backgroundColor: "#FFFFFF" },
     ],
+    "expo-speech-recognition",
   ],
 };
 

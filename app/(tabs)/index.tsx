@@ -1,4 +1,8 @@
 import { router } from "expo-router";
+import {
+  ExpoSpeechRecognitionModule,
+  useSpeechRecognitionEvent,
+} from "expo-speech-recognition";
 import { useEffect, useRef, useState } from "react";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
@@ -41,9 +45,70 @@ export default function ShrijaChatScreen() {
 
   const [attachment, setAttachment] = useState<ShrijaAttachment[]>([]);
 
+  const [isListening, setIsListening] =
+  useState(false);
+
   const list = useRef<FlatList<ChatMessage>>(null);
 
   const isLargeScreen = Dimensions.get("window").width >= 900;
+
+  useSpeechRecognitionEvent("start", () => {
+  console.log("Speech recognition started");
+
+  setIsListening(true);
+});
+
+useSpeechRecognitionEvent("end", () => {
+  console.log("Speech recognition ended");
+
+  setIsListening(false);
+});
+
+useSpeechRecognitionEvent("result", (event) => {
+  const transcript =
+    event.results[0]?.transcript ?? "";
+
+  console.log(
+    "Speech transcript:",
+    transcript,
+  );
+
+  setInput(transcript);
+});
+
+useSpeechRecognitionEvent("error", (event) => {
+  console.log(
+    "Speech recognition error:",
+    event.error,
+    event.message,
+  );
+
+  setIsListening(false);
+
+  if (event.error === "not-allowed") {
+    Alert.alert(
+      "Microphone permission",
+      "Please allow microphone access in your device settings.",
+    );
+
+    return;
+  }
+
+  if (event.error === "no-speech") {
+    Alert.alert(
+      "No speech detected",
+      "Please try speaking again.",
+    );
+
+    return;
+  }
+
+  Alert.alert(
+    "Voice input error",
+    event.message ||
+      "Unable to recognize your voice.",
+  );
+});
 
   // useEffect(() => {
   //   requestAnimationFrame(() => {
@@ -244,20 +309,64 @@ export default function ShrijaChatScreen() {
     setSidebarVisible(false);
   };
 
-  const handleMicPress = () => {
-    /*
-     * Voice recognition will be connected here later.
-     *
-     * DO NOT import expo-speech-recognition here yet.
-     *
-     * For now this is only a UI placeholder.
-     */
+  // const handleMicPress = () => {
+  //   /*
+  //    * Voice recognition will be connected here later.
+  //    *
+  //    * DO NOT import expo-speech-recognition here yet.
+  //    *
+  //    * For now this is only a UI placeholder.
+  //    */
+
+  //   Alert.alert(
+  //     "Voice input",
+  //     "Microphone integration will be connected next.",
+  //   );
+  // };
+
+  const handleMicPress = async () => {
+  try {
+    if (isListening) {
+      ExpoSpeechRecognitionModule.stop();
+      return;
+    }
+
+    Keyboard.dismiss();
+
+    const permission =
+      await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+
+    if (!permission.granted) {
+      Alert.alert(
+        "Microphone permission required",
+        "Please allow Shrija AI to use your microphone.",
+      );
+
+      return;
+    }
+
+    setInput("");
+
+    ExpoSpeechRecognitionModule.start({
+      // lang: "en-US", // That is good for English.
+      lang: "en-IN", // if you want Indian English, you can try:
+      interimResults: true,
+      continuous: false,
+    });
+  } catch (error) {
+    console.error(
+      "Speech recognition start error:",
+      error,
+    );
+
+    setIsListening(false);
 
     Alert.alert(
       "Voice input",
-      "Microphone integration will be connected next.",
+      "Unable to start voice recognition.",
     );
-  };
+  }
+};
 
   const openProfile = () => {
     setSidebarVisible(false);
@@ -312,6 +421,7 @@ export default function ShrijaChatScreen() {
           onChangeText={setInput}
           onSend={() => submit()}
           onMicPress={handleMicPress}
+          isListening={isListening}
           attachment={attachment}
           onAttachPress={handleAttachPress}
           onRemoveAttachment={removeAttachment}
