@@ -24,7 +24,7 @@ import { AppScreen, usePalette } from "@/components/shrija-ui";
 import ShrijaSidebar from "@/components/shrija-sidebar";
 import ShrijaChatHeader from "@/components/shrija-chat-header";
 import ShrijaWelcome from "@/components/shrija-welcome";
-import ShrijaSuggestions from "@/components/shrija-suggestions";
+// import ShrijaSuggestions from "@/components/shrija-suggestions";
 import ShrijaComposer, {
   type ShrijaAttachment,
 } from "@/components/shrija-chat-composer";
@@ -388,8 +388,8 @@ useSpeechRecognitionEvent("error", (event) => {
 
       <KeyboardAvoidingView
         style={styles.chatArea}
-        behavior="padding"
-        // behavior={Platform.OS === "ios" ? "padding" : "height"}
+        // behavior="padding"
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={0}
       >
         {/* <View style={styles.chatArea}> */}
@@ -409,7 +409,7 @@ useSpeechRecognitionEvent("error", (event) => {
               <View>
                 <ShrijaWelcome />
 
-                <ShrijaSuggestions onSelect={(text) => submit(text)} />
+                {/* <ShrijaSuggestions onSelect={(text) => submit(text)} /> */}
               </View>
             ) : null
           }

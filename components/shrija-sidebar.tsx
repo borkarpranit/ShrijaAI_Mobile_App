@@ -234,7 +234,8 @@ function ChatSection({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    width: 260,
+    // width: 260,
+    width: 160,
     borderRightWidth: StyleSheet.hairlineWidth,
   },
 
