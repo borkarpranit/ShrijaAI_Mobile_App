@@ -2,10 +2,12 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { StyleSheet, Text, View } from "react-native";
 
 import { usePalette } from "@/components/shrija-ui";
-import { employee } from "@/lib/shrija-domain";
+import { displayName } from "@/lib/shrija-domain";
+import { useShrija } from "@/lib/shrija-store";
 
 export default function ShrijaWelcome() {
   const p = usePalette();
+  const { user } = useShrija();
 
   const hour = new Date().getHours();
 
@@ -35,7 +37,7 @@ export default function ShrijaWelcome() {
       <Text style={[styles.title, { color: p.text }]}>
         {greeting},{" "}
         <Text style={{ color: p.accent }}>
-          {employee.name.split(" ")[0]}.
+          {displayName(user)}.
         </Text>
       </Text>
 

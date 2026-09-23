@@ -1,4 +1,5 @@
 import { router } from "expo-router";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import {
   ExpoSpeechRecognitionModule,
   useSpeechRecognitionEvent,
@@ -7,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import {
+  ActivityIndicator,
   Alert,
   Dimensions,
   FlatList,
@@ -24,7 +26,7 @@ import { AppScreen, usePalette } from "@/components/shrija-ui";
 import ShrijaSidebar from "@/components/shrija-sidebar";
 import ShrijaChatHeader from "@/components/shrija-chat-header";
 import ShrijaWelcome from "@/components/shrija-welcome";
-// import ShrijaSuggestions from "@/components/shrija-suggestions";
+import ShrijaSuggestions from "@/components/shrija-suggestions";
 import ShrijaComposer, {
   type ShrijaAttachment,
 } from "@/components/shrija-chat-composer";
@@ -36,7 +38,7 @@ import { type ChatMessage } from "@/lib/shrija-domain";
 import { useShrija } from "@/lib/shrija-store";
 
 export default function ShrijaChatScreen() {
-  const { messages, sendMessage, clearConversation } = useShrija();
+  const { messages, sendMessage, clearConversation, isSending } = useShrija();
 
   const p = usePalette();
 
@@ -388,8 +390,8 @@ useSpeechRecognitionEvent("error", (event) => {
 
       <KeyboardAvoidingView
         style={styles.chatArea}
-        // behavior="padding"
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior="padding"
+        // behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={0}
       >
         {/* <View style={styles.chatArea}> */}
@@ -409,11 +411,21 @@ useSpeechRecognitionEvent("error", (event) => {
               <View>
                 <ShrijaWelcome />
 
-                {/* <ShrijaSuggestions onSelect={(text) => submit(text)} /> */}
+                <ShrijaSuggestions onSelect={(text) => submit(text)} />
               </View>
             ) : null
           }
           contentContainerStyle={styles.messageList}
+          ListFooterComponent={
+            isSending ? (
+              <View style={styles.typingRow}>
+                <View style={[styles.typingIcon, { backgroundColor: p.accent }]}>
+                  <MaterialIcons name="auto-awesome" size={14} color="#FFFFFF" />
+                </View>
+                <ActivityIndicator size="small" color={p.muted} />
+              </View>
+            ) : null
+          }
         />
 
         <ShrijaComposer
@@ -499,6 +511,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 10,
+  },
+
+  typingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 13,
+  },
+
+  typingIcon: {
+    width: 29,
+    height: 29,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   modalContainer: {

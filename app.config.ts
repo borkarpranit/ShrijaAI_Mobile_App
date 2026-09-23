@@ -18,11 +18,7 @@ const config: ExpoConfig = {
       foregroundImage: "./assets/images/android-icon-foreground.png",
     },
   },
-  web: {
-    bundler: "metro",
-    output: "static",
-    favicon: "./assets/images/favicon.png",
-  },
+  // web: { bundler: "metro", output: "static", favicon: "./assets/images/favicon.png" },
   plugins: [
     "expo-router",
     [

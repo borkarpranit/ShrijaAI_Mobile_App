@@ -5,6 +5,8 @@ import {
   Avatar,
   usePalette,
 } from "@/components/shrija-ui";
+import { initialsOf } from "@/lib/shrija-domain";
+import { useShrija } from "@/lib/shrija-store";
 
 type ShrijaChatHeaderProps = {
   onMenu: () => void;
@@ -18,6 +20,7 @@ export default function ShrijaChatHeader({
   onProfile,
 }: ShrijaChatHeaderProps) {
   const p = usePalette();
+  const { user } = useShrija();
 
   return (
     <View
@@ -110,7 +113,7 @@ export default function ShrijaChatHeader({
             { opacity: pressed ? 0.65 : 1 },
           ]}
         >
-          <Avatar size={36} />
+          <Avatar size={36} initials={initialsOf(user)} />
         </Pressable>
       </View>
     </View>

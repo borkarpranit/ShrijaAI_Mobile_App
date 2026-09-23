@@ -2,6 +2,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -14,28 +15,27 @@ import {
 
 import { AppScreen, PrimaryButton, usePalette } from "@/components/shrija-ui";
 import { haptic } from "@/lib/haptics";
-import { demoCredentials, isDemoLogin } from "@/lib/shrija-domain";
 import { useShrija } from "@/lib/shrija-store";
 
 export default function LoginScreen() {
-  const { signIn } = useShrija();
+  const { signIn, isAuthenticating } = useShrija();
   const p = usePalette();
-  const [email, setEmail] = useState<string>(demoCredentials.email);
-  const [password, setPassword] = useState<string>(demoCredentials.password);
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const [hidden, setHidden] = useState(true);
 
-  const continueToChat = () => {
-    if (!isDemoLogin(email, password)) {
+  const continueToChat = async () => {
+    try {
+      await signIn(email, password);
+      haptic.success();
+      router.replace("/(tabs)");
+    } catch (error) {
       haptic.medium();
       Alert.alert(
-        "Incorrect demo credentials",
-        `Use ${demoCredentials.email} and ${demoCredentials.password}.`,
+        "Sign in failed",
+        error instanceof Error ? error.message : "Please check your details and try again.",
       );
-      return;
     }
-    haptic.success();
-    signIn();
-    router.replace("/(tabs)");
   };
 
   return (
@@ -88,28 +88,21 @@ export default function LoginScreen() {
               </Pressable>
             </View>
           </View>
-          <View
-            style={[
-              styles.demoHint,
-              { backgroundColor: p.surface, borderColor: p.border },
-            ]}
-          >
-            <Text style={[styles.demoText, { color: p.muted }]}>
-              Demo: {demoCredentials.email} · {demoCredentials.password}
-            </Text>
-          </View>
         </View>
         <View style={styles.bottom}>
           <PrimaryButton
-            label="Sign in"
+            label={isAuthenticating ? "Signing in…" : "Sign in"}
             icon="arrow-forward"
             onPress={continueToChat}
-            disabled={!email.trim() || !password}
+            disabled={!email.trim() || !password || isAuthenticating}
           />
-          <Text style={[styles.note, { color: p.subtle }]}>
-            Static Expo SDK 54 prototype. Your external MySQL backend can be
-            connected later through a secure API.
-          </Text>
+          {isAuthenticating ? (
+            <ActivityIndicator size="small" color={p.accent} />
+          ) : (
+            <Text style={[styles.note, { color: p.subtle }]}>
+              Sign in with your HRMS work account.
+            </Text>
+          )}
         </View>
       </KeyboardAvoidingView>
     </AppScreen>
@@ -188,8 +181,6 @@ const styles = StyleSheet.create({
     paddingRight: 34,
   },
   passwordToggle: { position: "absolute", right: 15, bottom: 16 },
-  demoHint: { marginTop: 17, borderWidth: 1, borderRadius: 12, padding: 11 },
-  demoText: { fontSize: 11, lineHeight: 16, textAlign: "center" },
   bottom: { gap: 15 },
   note: {
     fontSize: 11,

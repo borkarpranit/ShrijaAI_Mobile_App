@@ -17,12 +17,12 @@ import {
   PageHeader,
   usePalette,
 } from "@/components/shrija-ui";
-import { employee } from "@/lib/shrija-domain";
+import { displayName, initialsOf, roleLabel } from "@/lib/shrija-domain";
 import { haptic } from "@/lib/haptics";
 import { useShrija } from "@/lib/shrija-store";
 
 export default function ProfileScreen() {
-  const { theme, toggleTheme, signOut, clearConversation } = useShrija();
+  const { theme, toggleTheme, signOut, clearConversation, user } = useShrija();
   const p = usePalette();
   const logOut = () =>
     Alert.alert(
@@ -66,16 +66,16 @@ export default function ProfileScreen() {
       >
         <Card style={styles.profileCard}>
           <View style={styles.identity}>
-            <Avatar size={50} />
+            <Avatar size={50} initials={initialsOf(user)} />
             <View>
               <Text style={[styles.name, { color: p.text }]}>
-                {employee.name}
+                {displayName(user)}
               </Text>
               <Text style={[styles.role, { color: p.muted }]}>
-                {employee.role}
+                {roleLabel(user?.role)}
               </Text>
               <Text style={[styles.email, { color: p.subtle }]}>
-                {employee.email}
+                {user?.username ?? ""}
               </Text>
             </View>
           </View>

@@ -2,6 +2,8 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Avatar, usePalette } from "@/components/shrija-ui";
+import { displayName, initialsOf, roleLabel } from "@/lib/shrija-domain";
+import { useShrija } from "@/lib/shrija-store";
 
 type ShrijaSidebarProps = {
   onNewChat: () => void;
@@ -29,6 +31,7 @@ export default function ShrijaSidebar({
   onProfile,
 }: ShrijaSidebarProps) {
   const p = usePalette();
+  const { user } = useShrija();
 
   return (
     <View
@@ -143,7 +146,7 @@ export default function ShrijaSidebar({
           },
         ]}
       >
-        <Avatar size={36} />
+        <Avatar size={36} initials={initialsOf(user)} />
 
         <View style={styles.profileInfo}>
           <Text
@@ -153,7 +156,7 @@ export default function ShrijaSidebar({
               { color: p.text },
             ]}
           >
-            Priya Sharma
+            {displayName(user)}
           </Text>
 
           <Text
@@ -163,7 +166,7 @@ export default function ShrijaSidebar({
               { color: p.subtle },
             ]}
           >
-            priya.sharma@adk.com
+            {user?.username ?? roleLabel(undefined)}
           </Text>
         </View>
 
@@ -234,8 +237,7 @@ function ChatSection({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // width: 260,
-    width: 160,
+    width: 260,
     borderRightWidth: StyleSheet.hairlineWidth,
   },
 

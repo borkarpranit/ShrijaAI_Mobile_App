@@ -4,7 +4,7 @@
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
-    "dev": "npx expo start --port ${EXPO_PORT:-8081}",
+    "dev": "npx expo start --port 3000",
     "check": "tsc --noEmit",
     "lint": "expo lint",
     "test": "vitest run",
@@ -14,6 +14,7 @@
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
     "@react-native-async-storage/async-storage": "^2.2.0",
+    "axios": "^1.7.9",
     "babel-preset-expo": "~54.0.10",
     "expo": "~54.0.29",
     "expo-constants": "~18.0.14",
