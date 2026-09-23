@@ -1,17 +1,29 @@
 import { describe, expect, it } from "vitest";
 
-import { demoCredentials, isDemoLogin, selectAssistantReply } from "../lib/shrija-domain";
+import { displayName, initialsOf, roleLabel } from "../lib/shrija-domain";
+import type { CurrentUser } from "../lib/auth-api";
 
-describe("Shrija static app helpers", () => {
-  it("accepts only the documented hard-coded demo credentials", () => {
-    expect(isDemoLogin(demoCredentials.email, demoCredentials.password)).toBe(true);
-    expect(isDemoLogin(demoCredentials.email, "wrong-password")).toBe(false);
+const user: CurrentUser = {
+  userId: 1,
+  username: "priya.sharma@adk.com",
+  role: "EMPLOYEE",
+  employeeId: 42,
+};
+
+describe("Shrija user display helpers", () => {
+  it("derives a friendly first name from the signed-in user's username", () => {
+    expect(displayName(user)).toBe("Priya");
+    expect(displayName(null)).toBe("there");
   });
 
-  it("returns relevant offline guidance for common workplace topics", () => {
-    expect(selectAssistantReply("How many leave days do I have?")).toContain("leave");
-    expect(selectAssistantReply("Show my attendance")).toContain("attendance");
-    expect(selectAssistantReply("Explain the work from home policy")).toContain("polic");
+  it("derives avatar initials from the signed-in user's username", () => {
+    expect(initialsOf(user)).toBe("PS");
+    expect(initialsOf(null)).toBe("??");
+  });
+
+  it("maps backend roles to friendly labels", () => {
+    expect(roleLabel("ADMIN")).toBe("Administrator");
+    expect(roleLabel("EMPLOYEE")).toBe("Team member");
+    expect(roleLabel(undefined)).toBe("Team member");
   });
 });
-
